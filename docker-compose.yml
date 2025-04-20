@@ -1,0 +1,36 @@
+version: "3"
+services:
+  spark-iceberg:
+    image: tabulario/spark-iceberg
+    container_name: spark-iceberg
+    ports:
+      - 8888:8888   # Jupyter Notebook
+      - 8080:8080   # Spark UI
+      - 10000:10000 # Spark Thrift Server
+    volumes:
+      - ./warehouse:/home/iceberg/warehouse
+      - ./notebooks:/home/iceberg/notebooks/notebooks
+    environment:
+      - AWS_ACCESS_KEY_ID=admin
+      - AWS_SECRET_ACCESS_KEY=password
+      - AWS_REGION=us-east-1
+    networks:
+      - iceberg_net
+    depends_on:
+      - minio
+
+  minio:
+    image: minio/minio
+    container_name: minio
+    environment:
+      - MINIO_ROOT_USER=admin
+      - MINIO_ROOT_PASSWORD=password
+    ports:
+      - 9000:9000
+      - 9001:9001
+    command: ["server", "/data", "--console-address", ":9001"]
+    networks:
+      - iceberg_net
+
+networks:
+  iceberg_net:
